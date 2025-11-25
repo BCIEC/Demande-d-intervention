@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Demande d'intervention</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #0078D7;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #0078D7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005fa3;
+        }
+        #suggestions {
+            border: 1px solid #ccc;
+            max-height: 120px;
+            overflow-y: auto;
+            margin-top: 5px;
+            display: none;
+            background: #fff;
+            position: absolute;
+            width: calc(100% - 22px);
+            z-index: 1000;
+        }
+        #suggestions div {
+            padding: 8px;
+            cursor: pointer;
+        }
+        #suggestions div:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Demande d'intervention</h2>
+        <form id="interventionForm">
+            <label for="identite">Identité du demandeur :</label>
+            <input type="text" id="identite" placeholder="Votre nom et prénom" required>
+
+            <label for="telephone">Numéro de téléphone :</label>
+            <input type="tel" id="telephone" placeholder="Ex: 06 12 34 56 78" required>
+
+            <label for="adresse">Adresse concernée :</label>
+            <input type="text" id="adresse" placeholder="Ex: 10 rue de Paris" autocomplete="off" required>
+            <div id="suggestions"></div>
+
+            <label for="complement">Complément d'adresse (optionnel) :</label>
+            <input type="text" id="complement" placeholder="Ex: numéro de logement, étage...">
+
+            <label for="type">Type d’intervention :</label>
+            <input type="text" id="type" placeholder="Ex: Réparation, Maintenance..." required>
+
+            <button type="submit">Générer le mail</button>
+        </form>
+    </div>
+
+    <script>
+        // Base de données des adresses et contrats
+        const contrats = {
+            "10 rue de Paris": "Contrat #12345",
+            "20 avenue Lyon": "Contrat #67890",
+            "5 boulevard Saint-Michel": "Contrat #54321",
+            "15 rue Victor Hugo": "Contrat #98765",
+            "30 avenue des Champs": "Contrat #11223"
+        };
+
+        const inputAdresse = document.getElementById("adresse");
+        const suggestionsDiv = document.getElementById("suggestions");
+
+        // Auto-complétion dynamique
+        inputAdresse.addEventListener("input", function() {
+            const query = inputAdresse.value.toLowerCase();
+            suggestionsDiv.innerHTML = "";
+            if (query.length > 0) {
+                const matches = Object.keys(contrats).filter(addr => addr.toLowerCase().includes(query));
+                if (matches.length > 0) {
+                    suggestionsDiv.style.display = "block";
+                    matches.forEach(match => {
+                        const div = document.createElement("div");
+                        div.textContent = match;
+                        div.onclick = () => {
+                            inputAdresse.value = match;
+                            suggestionsDiv.style.display = "none";
+                        };
+                        suggestionsDiv.appendChild(div);
+                    });
+                } else {
+                    suggestionsDiv.style.display = "none";
+                }
+            } else {
+                suggestionsDiv.style.display = "none";
+            }
+        });
+
+        // Validation + envoi à Power Automate + ouverture mail
+        document.getElementById("interventionForm").addEventListener("submit", function(e){
+            e.preventDefault();
+
+            const identite = document.getElementById("identite").value.trim();
+            const telephone = document.getElementById("telephone").value.trim();
+            const adresse = inputAdresse.value.trim();
+            const complement = document.getElementById("complement").value.trim();
+            const typeIntervention = document.getElementById("type").value.trim();
+            const contrat = contrats[adresse] || "Contrat inconnu";
+
+            // Vérification des champs obligatoires
+            if (!identite || !telephone || !adresse || !typeIntervention) {
+                alert("Merci de remplir tous les champs obligatoires avant de continuer.");
+                return;
+            }
+
+            // Validation téléphone (10 chiffres FR)
+            const phoneRegex = /^0[1-9]\d{8}$/;
+            const telClean = telephone.replace(/\s|-/g, "");
+            if (!phoneRegex.test(telClean)) {
+                alert("Veuillez entrer un numéro de téléphone valide (10 chiffres, ex: 0612345678).");
+                return;
+            }
+
+            // Envoi des données à Power Automate
+            fetch("https://default24139d14c62c4c478bddce71ea1d50.cf.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c95f23d9a87494ab301f364fe6acb2c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Og8tb1W-B4F7vK3M_TTAleWtGDCPlfkNg5tPmIGvILM", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    identite: identite,
+                    telephone: telClean,
+                    adresse: adresse,
+                    complement: complement,
+                    typeIntervention: typeIntervention,
+                    contrat: contrat
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Données envoyées à Power Automate !");
+                } else {
+                    console.error("Erreur lors de l'envoi des données.");
+                }
+            });
+
+            // Préparer le mail
+            let body = `Bonjour,\nJe souhaite une intervention.\n\nIdentité du demandeur : ${identite}\nTéléphone : ${telephone}\nAdresse : ${adresse}`;
+            if (complement) {
+                body += `\nComplément d'adresse : ${complement}`;
+            }
+            body += `\nNuméro de contrat : ${contrat}\nType d'intervention : ${typeIntervention}\n\nMerci de votre retour.`;
+
+            const mailto = `mailto:benjamin.rojo@engie.com?subject=Demande d'intervention&body=${encodeURIComponent(body)}`;
+            window.location.href = mailto;
+        });
+    </script>
+</body>
+</html>
