@@ -3,39 +3,65 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demande d'intervention</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 40px;
             background-color: #f4f4f4;
-        }
-        .container {
-            background: white;
+            margin: 0;
             padding: 20px;
+        }
+        .section {
+            background: #fff;
             border-radius: 8px;
-            max-width: 400px;
-            margin: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        h2 {
-            color: #0078D7;
-        }
-        input, button {
-            width: 100%;
+        .section h2 {
+            background-color: #0099ff;
+            color: #fff;
             padding: 10px;
-            margin-top: 10px;
-            font-size: 16px;
+            font-size: 18px;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
         }
-        button {
-            background-color: #0078D7;
-            color: white;
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .form-group.half {
+            flex: 1 1 calc(50% - 15px);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn {
+            background-color: #0099ff;
+            color: #fff;
+            padding: 10px 15px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
         }
-        button:hover {
-            background-color: #005fa3;
+        .btn:hover {
+            background-color: #007acc;
         }
         #suggestions {
             border: 1px solid #ccc;
@@ -58,123 +84,220 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Demande d'intervention</h2>
-        <form id="interventionForm">
-            <label for="identite">Identité du demandeur :</label>
-            <input type="text" id="identite" placeholder="Votre nom et prénom" required>
 
-            <label for="telephone">Numéro de téléphone :</label>
-            <input type="tel" id="telephone" placeholder="Ex: 06 12 34 56 78" required>
-
-            <label for="adresse">Adresse concernée :</label>
-            <input type="text" id="adresse" placeholder="Ex: 10 rue de Paris" autocomplete="off" required>
-            <div id="suggestions"></div>
-
-            <label for="complement">Complément d'adresse (optionnel) :</label>
-            <input type="text" id="complement" placeholder="Ex: numéro de logement, étage...">
-
-            <label for="type">Type d’intervention :</label>
-            <input type="text" id="type" placeholder="Ex: Réparation, Maintenance..." required>
-
-            <button type="submit">Générer le mail</button>
-        </form>
+<form id="interventionForm">
+    <!-- Qualification -->
+    <div class="section">
+        <h2>Qualification de la demande d'intervention</h2>
+        <div class="form-group half">
+            <label for="motif">Motif</label>
+            <select id="motif" required>
+                <option value="">Sélectionner une option</option>
+                <option>Maintenance</option>
+                <option>Réparation</option>
+            </select>
+        </div>
+        <div class="form-group half">
+            <label for="motif-detail">Motif détaillé</label>
+            <select id="motif-detail">
+                <option value="">Sélectionner une option</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="precisions">Précisions sur la demande</label>
+            <textarea id="precisions" placeholder="Renseignez vos observations ici..."></textarea>
+        </div>
     </div>
 
-    <script>
-        // Base de données des adresses et contrats
-        const contrats = {
-            "10 rue de Paris": "Contrat #12345",
-            "20 avenue Lyon": "Contrat #67890",
-            "5 boulevard Saint-Michel": "Contrat #54321",
-            "15 rue Victor Hugo": "Contrat #98765",
-            "30 avenue des Champs": "Contrat #11223"
-        };
+    <!-- Coordonnées -->
+    <div class="section">
+        <h2>Coordonnées de la personne concernée</h2>
+        <div class="form-group half">
+            <label for="nom">Nom</label>
+            <input type="text" id="nom" required>
+        </div>
+        <div class="form-group half">
+            <label for="prenom">Prénom</label>
+            <input type="text" id="prenom" required>
+        </div>
+        <div class="form-group half">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" id="telephone" placeholder="06XXXXXXXX" required>
+        </div>
+        <div class="form-group half">
+            <label for="email">Email</label>
+            <input type="email" id="email">
+        </div>
+    </div>
 
-        const inputAdresse = document.getElementById("adresse");
-        const suggestionsDiv = document.getElementById("suggestions");
+    <!-- Adresse -->
+    <div class="section">
+        <h2>Précisions sur le lieu d'intervention</h2>
+        <div class="form-group">
+            <label for="adresse">Adresse concernée</label>
+            <input type="text" id="adresse" autocomplete="off" required>
+            <div id="suggestions"></div>
+        </div>
+        <div class="form-group half">
+            <label for="etage">Étage</label>
+            <input type="text" id="etage">
+        </div>
+        <div class="form-group half">
+            <label for="zone">Zone/Service</label>
+            <input type="text" id="zone">
+        </div>
+        <div class="form-group half">
+            <label for="appartement">Appartement/Bureau/Local</label>
+            <input type="text" id="appartement">
+        </div>
+        <div class="form-group half">
+            <label for="batiment">Bâtiment</label>
+            <input type="text" id="batiment">
+        </div>
+    </div>
 
-        // Auto-complétion dynamique
-        inputAdresse.addEventListener("input", function() {
-            const query = inputAdresse.value.toLowerCase();
-            suggestionsDiv.innerHTML = "";
-            if (query.length > 0) {
-                const matches = Object.keys(contrats).filter(addr => addr.toLowerCase().includes(query));
-                if (matches.length > 0) {
-                    suggestionsDiv.style.display = "block";
-                    matches.forEach(match => {
-                        const div = document.createElement("div");
-                        div.textContent = match;
-                        div.onclick = () => {
-                            inputAdresse.value = match;
-                            suggestionsDiv.style.display = "none";
-                        };
-                        suggestionsDiv.appendChild(div);
-                    });
-                } else {
-                    suggestionsDiv.style.display = "none";
-                }
+    <!-- Infos complémentaires -->
+    <div class="section">
+        <h2>Informations complémentaires</h2>
+        <div class="form-group half">
+            <label for="ref-client">Référence client</label>
+            <input type="text" id="ref-client">
+        </div>
+        <div class="form-group half">
+            <label for="urgence">Niveau d'urgence</label>
+            <select id="urgence">
+                <option value="">Sélectionner une option</option>
+                <option>Faible</option>
+                <option>Moyenne</option>
+                <option>Élevée</option>
+            </select>
+        </div>
+    </div>
+
+    <button class="btn" type="submit">Générer Mail</button>
+</form>
+
+<script>
+    // Base de données des adresses et contrats (en minuscules pour la comparaison)
+    const contrats = {
+        "10 rue de paris": "Contrat #12345",
+        "20 avenue lyon": "Contrat #67890",
+        "5 boulevard saint-michel": "Contrat #54321",
+        "15 rue victor hugo": "Contrat #98765",
+        "30 avenue des champs": "Contrat #11223"
+    };
+
+    const inputAdresse = document.getElementById("adresse");
+    const suggestionsDiv = document.getElementById("suggestions");
+
+    // Auto-complétion dynamique (insensible à la casse)
+    inputAdresse.addEventListener("input", function() {
+        const query = inputAdresse.value.toLowerCase();
+        suggestionsDiv.innerHTML = "";
+        if (query.length > 0) {
+            const matches = Object.keys(contrats).filter(addr => addr.includes(query));
+            if (matches.length > 0) {
+                suggestionsDiv.style.display = "block";
+                matches.forEach(match => {
+                    const div = document.createElement("div");
+                    div.textContent = match;
+                    div.onclick = () => {
+                        inputAdresse.value = match;
+                        suggestionsDiv.style.display = "none";
+                    };
+                    suggestionsDiv.appendChild(div);
+                });
             } else {
                 suggestionsDiv.style.display = "none";
             }
-        });
+        } else {
+            suggestionsDiv.style.display = "none";
+        }
+    });
 
-        // Validation + envoi à Power Automate + ouverture mail
-        document.getElementById("interventionForm").addEventListener("submit", function(e){
-            e.preventDefault();
+    // Validation + mailto + Power Automate
+    document.getElementById("interventionForm").addEventListener("submit", function(e){
+        e.preventDefault();
 
-            const identite = document.getElementById("identite").value.trim();
-            const telephone = document.getElementById("telephone").value.trim();
-            const adresse = inputAdresse.value.trim();
-            const complement = document.getElementById("complement").value.trim();
-            const typeIntervention = document.getElementById("type").value.trim();
-            const contrat = contrats[adresse] || "Contrat inconnu";
+        const nom = document.getElementById("nom").value.trim();
+        const prenom = document.getElementById("prenom").value.trim();
+        const telephone = document.getElementById("telephone").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const adresse = inputAdresse.value.trim();
+        const motif = document.getElementById("motif").value.trim();
+        const motifDetail = document.getElementById("motif-detail").value.trim();
+        const precisions = document.getElementById("precisions").value.trim();
+        const etage = document.getElementById("etage").value.trim();
+        const zone = document.getElementById("zone").value.trim();
+        const appartement = document.getElementById("appartement").value.trim();
+        const batiment = document.getElementById("batiment").value.trim();
+        const refClient = document.getElementById("ref-client").value.trim();
+        const urgence = document.getElementById("urgence").value.trim();
 
-            // Vérification des champs obligatoires
-            if (!identite || !telephone || !adresse || !typeIntervention) {
-                alert("Merci de remplir tous les champs obligatoires avant de continuer.");
-                return;
-            }
+        const contrat = contrats[adresse.toLowerCase()] || "Contrat inconnu";
 
-            // Validation téléphone (10 chiffres FR)
-            const phoneRegex = /^0[1-9]\d{8}$/;
-            const telClean = telephone.replace(/\s|-/g, "");
-            if (!phoneRegex.test(telClean)) {
-                alert("Veuillez entrer un numéro de téléphone valide (10 chiffres, ex: 0612345678).");
-                return;
-            }
+        if (!nom || !prenom || !telephone || !adresse || !motif) {
+            alert("Merci de remplir les champs obligatoires.");
+            return;
+        }
 
-            // Envoi des données à Power Automate
-            fetch("https://default24139d14c62c4c478bddce71ea1d50.cf.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c95f23d9a87494ab301f364fe6acb2c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Og8tb1W-B4F7vK3M_TTAleWtGDCPlfkNg5tPmIGvILM", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    identite: identite,
-                    telephone: telClean,
-                    adresse: adresse,
-                    complement: complement,
-                    typeIntervention: typeIntervention,
-                    contrat: contrat
-                })
+        const phoneRegex = /^0[1-9]\d{8}$/;
+        const telClean = telephone.replace(/\s|-/g, "");
+        if (!phoneRegex.test(telClean)) {
+            alert("Numéro de téléphone invalide.");
+            return;
+        }
+
+        // Envoi à Power Automate
+        fetch("https://default24139d14c62c4c478bddce71ea1d50.cf.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/2c95f23d9a87494ab301f364fe6acb2c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Og8tb1W-B4F7vK3M_TTAleWtGDCPlfkNg5tPmIGvILM", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                nom: nom,
+                prenom: prenom,
+                telephone: telClean,
+                email: email,
+                adresse: adresse,
+                etage: etage,
+                zone: zone,
+                appartement: appartement,
+                batiment: batiment,
+                motif: motif,
+                motifDetail: motifDetail,
+                precisions: precisions,
+                refClient: refClient,
+                urgence: urgence,
+                contrat: contrat
             })
-            .then(response => {
-                if (response.ok) {
-                    console.log("Données envoyées à Power Automate !");
-                } else {
-                    console.error("Erreur lors de l'envoi des données.");
-                }
-            });
-
-            // Préparer le mail
-            let body = `Bonjour,\nJe souhaite une intervention.\n\nIdentité du demandeur : ${identite}\nTéléphone : ${telephone}\nAdresse : ${adresse}`;
-            if (complement) {
-                body += `\nComplément d'adresse : ${complement}`;
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log("✅ Données envoyées à Power Automate !");
+            } else {
+                console.error("❌ Erreur lors de l'envoi des données.");
             }
-            body += `\nNuméro de contrat : ${contrat}\nType d'intervention : ${typeIntervention}\n\nMerci de votre retour.`;
+        })
+        .catch(error => console.error("Erreur réseau :", error));
 
-            const mailto = `mailto:benjamin.rojo@engie.com?subject=Demande d'intervention&body=${encodeURIComponent(body)}`;
-            window.location.href = mailto;
-        });
-    </script>
+        // Préparer le mail
+        let body = `Bonjour,\nJe souhaite une intervention.\n\nNom : ${nom}\nPrénom : ${prenom}\nTéléphone : ${telephone}`;
+        if (email) body += `\nEmail : ${email}`;
+        body += `\nAdresse : ${adresse}\nNuméro de contrat : ${contrat}\nMotif : ${motif}`;
+        if (motifDetail) body += `\nMotif détaillé : ${motifDetail}`;
+        if (precisions) body += `\nPrécisions : ${precisions}`;
+        if (etage) body += `\nÉtage : ${etage}`;
+        if (zone) body += `\nZone/Service : ${zone}`;
+        if (appartement) body += `\nAppartement/Bureau/Local : ${appartement}`;
+        if (batiment) body += `\nBâtiment : ${batiment}`;
+        if (refClient) body += `\nRéférence client : ${refClient}`;
+        if (urgence) body += `\nNiveau d'urgence : ${urgence}`;
+
+        body += `\n\nMerci de votre retour.`;
+
+        const mailto = `mailto:benjamin.rojo@engie.com?subject=Demande d'intervention&body=${encodeURIComponent(body)}`;
+        window.location.href = mailto;
+    });
+</script>
+
 </body>
 </html>
